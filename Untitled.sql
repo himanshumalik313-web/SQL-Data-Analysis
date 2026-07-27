@@ -1,0 +1,84 @@
+create database Company;
+
+use  company;
+
+select count(*) from clean_dataset;
+
+select * 
+from clean_dataset;
+
+ALTER TABLE clean_dataset
+MODIFY COLUMN Date Date;
+
+DESCRIBE clean_dataset;
+ 
+# top 10 orderID with with highest TotalPrice
+select OrderID,Totalprice
+from  clean_dataset
+order by TotalPrice desc
+limit 10;
+
+# top product with highest sales 
+select Product , SUM(TotalPrice) as TotalSales
+from  clean_dataset
+group by Product
+order by TotalSales desc; 
+
+# year wise product sales chart
+select year(Date) as Year,Product,SUM(TotalPrice) as TotalSales
+from clean_dataset
+group by year(Date),Product
+order by Year asc,TotalSales desc ;
+
+# average sales product wise
+select Product , avg(TotalPrice) as AverageSalary
+from clean_dataset
+group by Product
+order by AverageSalary asc ;
+
+# Total. unit of product sales in yeaar wise
+select Year(Date),Product ,count(*) as Productcount
+from Clean_dataset
+group by year(Date),Product
+order by Year(Date) asc, Productcount desc ;
+
+# Order status with orderId
+select OrderID , PaymentMethod, OrderStatus, TrackingNumber
+from Clean_dataset;
+
+#Product wise 	CouponCode 
+select Product ,CouponCode ,count(*)
+from  Clean_dataset
+group by CouponCode,Product  ;
+
+# Product wise top ReferralSource 
+SELECT c.Product,
+       c.ReferralSource,
+       COUNT(*) AS TotalCount
+FROM Clean_dataset c
+GROUP BY c.Product, c.ReferralSource
+HAVING COUNT(*) = (
+    SELECT MAX(cnt)
+    FROM (
+        SELECT COUNT(*) AS cnt
+        FROM Clean_dataset
+        WHERE Product = c.Product
+        GROUP BY ReferralSource
+    ) AS t
+);
+
+# product with avg unit price
+select Product , avg(TotalPrice) as TotalSales
+from Clean_dataset 
+group by Product
+order by TotalSales asc;
+
+#Product Cancelled and return product 
+SELECT Product,
+       OrderStatus,
+       COUNT(*) AS TotalLoss,
+       SUM(COUNT(*)) OVER (ORDER BY Product) AS RunningTotal # window function
+FROM Clean_dataset
+WHERE OrderStatus IN ('Cancelled', 'Returned')
+GROUP BY Product, OrderStatus
+ORDER BY Product;
